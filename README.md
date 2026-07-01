@@ -102,11 +102,12 @@ project/
 | `ChatServer.py` / `ChatClient.py` | 多人聊天室（threading + broadcast）|
 | `pygame_multiplayer/` | pygame 多人 2D 遊戲：Server + Client，WASD 移動、小地圖、聊天泡泡。詳見資料夾內 `README.md` |
 
-### DAY 6 — Web 版多人遊戲
+### DAY 6 — Web 基礎 + Web 版多人遊戲
 
 | 檔案 / 資料夾 | 內容 |
 |---|---|
-| `web_shooter/` | 把 DAY5 的 pygame 遊戲移植到瀏覽器：`aiohttp` + WebSocket + HTML5 Canvas。所有人只要瀏覽器打開 `http://<host>:8765/` 就能玩，不用裝 pygame。詳見資料夾內 `README.md` |
+| `web_basics/` | **Web 入門**：三層架構 demo 留言板 — HTML/JS 前端 + aiohttp 後端 + SQLite。教 fetch、GET/POST、JSON、SQL 基本語法 |
+| `web_shooter/` | **進階**：把 DAY5 的 pygame 遊戲移植到瀏覽器：`aiohttp` + WebSocket + HTML5 Canvas。所有人只要瀏覽器打開 `http://<host>:8765/` 就能玩，不用裝 pygame |
 
 ---
 
