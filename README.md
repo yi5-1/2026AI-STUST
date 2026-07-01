@@ -102,6 +102,12 @@ project/
 | `ChatServer.py` / `ChatClient.py` | 多人聊天室（threading + broadcast）|
 | `pygame_multiplayer/` | pygame 多人 2D 遊戲：Server + Client，WASD 移動、小地圖、聊天泡泡。詳見資料夾內 `README.md` |
 
+### DAY 6 — Web 版多人遊戲
+
+| 檔案 / 資料夾 | 內容 |
+|---|---|
+| `web_shooter/` | 把 DAY5 的 pygame 遊戲移植到瀏覽器：`aiohttp` + WebSocket + HTML5 Canvas。所有人只要瀏覽器打開 `http://<host>:8765/` 就能玩，不用裝 pygame。詳見資料夾內 `README.md` |
+
 ---
 
 ## hello.md
@@ -113,8 +119,8 @@ Markdown 語法初體驗，練習標題與項目符號。
 ## 學習脈絡
 
 ```
-DAY2 語法基礎  →  DAY3 迴圈 + 視覺化  →  DAY4 真實資料 + pandas + tkinter GUI  →  DAY5 網路 socket + pygame 多人遊戲
-   (變數/條件)        (列表/檔案/plt)         (Excel/作業/GUI)                        (TCP/threading/pygame)
+DAY2 語法基礎  →  DAY3 迴圈 + 視覺化  →  DAY4 pandas + tkinter GUI  →  DAY5 socket + pygame 多人  →  DAY6 aiohttp + WebSocket + Canvas
+   (變數/條件)        (列表/檔案/plt)         (Excel/作業/GUI)              (TCP/threading/pygame)         (瀏覽器多人遊戲)
 ```
 
 每個檔名都用中文命名，方便對照當天課程主題快速回頭翻閱。

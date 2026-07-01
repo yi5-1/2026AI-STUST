@@ -15,6 +15,8 @@ from constants import (
     CHAT_LOG_SHOW, CHAT_PANEL_W, CHAT_PANEL_H,
     BUFF_COLORS, BUFF_LABELS, BUFF_ZH,
     SUPER_PREFIX,
+    KILL_FEED_SHOW, KILL_FEED_DURATION,
+    BULLET_TIER_COLORS, BULLET_TIER_SIZES,
 )
 
 
@@ -23,6 +25,60 @@ def rainbow(t, offset=0.0):
     h = (t * 1.2 + offset) % 1.0
     r, g, b = colorsys.hsv_to_rgb(h, 1.0, 1.0)
     return int(r * 255), int(g * 255), int(b * 255)
+
+
+def regular_polygon(cx, cy, n, r, rot=0):
+    return [(cx + r * math.cos(rot + 2 * math.pi * i / n),
+             cy + r * math.sin(rot + 2 * math.pi * i / n)) for i in range(n)]
+
+
+def star_polygon(cx, cy, spikes, outer, inner, rot=0):
+    pts = []
+    for i in range(spikes * 2):
+        r = outer if i % 2 == 0 else inner
+        a = rot + math.pi * i / spikes
+        pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return pts
+
+
+def draw_bullet_by_tier(surf, sx, sy, tier, now):
+    """依等級階段畫不同形狀 / 顏色"""
+    col = BULLET_TIER_COLORS[tier]
+    size = BULLET_TIER_SIZES[tier]
+    rot = now * 3  # 旋轉動畫
+
+    if tier == 0:
+        pygame.draw.circle(surf, col, (sx, sy), size)
+        pygame.draw.circle(surf, (0, 0, 0), (sx, sy), size, 1)
+    elif tier == 1:
+        pygame.draw.circle(surf, col, (sx, sy), size)
+        pygame.draw.circle(surf, (255, 255, 255), (sx, sy), size - 3)
+    elif tier == 2:
+        r = pygame.Rect(sx - size, sy - size, size * 2, size * 2)
+        pygame.draw.rect(surf, col, r)
+        pygame.draw.rect(surf, (0, 0, 0), r, 1)
+    elif tier == 3:
+        pygame.draw.polygon(surf, col, regular_polygon(sx, sy, 3, size, rot))
+    elif tier == 4:
+        pygame.draw.polygon(surf, col, regular_polygon(sx, sy, 4, size, rot))  # 菱形
+    elif tier == 5:
+        pygame.draw.polygon(surf, col, regular_polygon(sx, sy, 5, size, rot))
+    elif tier == 6:
+        pygame.draw.polygon(surf, col, regular_polygon(sx, sy, 6, size, rot))
+    elif tier == 7:
+        pygame.draw.polygon(surf, col, star_polygon(sx, sy, 5, size, size / 2, rot))
+    elif tier == 8:
+        pygame.draw.polygon(surf, col, star_polygon(sx, sy, 6, size, size / 2, rot))
+        pygame.draw.polygon(surf, (255, 255, 255),
+                            star_polygon(sx, sy, 6, size, size / 2, rot), 1)
+    else:  # 9 legendary
+        # 外圈光暈
+        glow = pygame.Surface((size * 4, size * 4), pygame.SRCALPHA)
+        pygame.draw.circle(glow, (255, 240, 100, 80), (size * 2, size * 2), size * 2)
+        surf.blit(glow, (sx - size * 2, sy - size * 2))
+        pygame.draw.polygon(surf, col, star_polygon(sx, sy, 5, size, size / 2, rot))
+        pygame.draw.polygon(surf, (255, 255, 255),
+                            star_polygon(sx, sy, 5, size, size / 2, rot), 2)
 
 
 def run_game(sock, config):
@@ -50,7 +106,7 @@ def run_game(sock, config):
     my_id = config["id"]
     my_x, my_y = WORLD_W / 2, WORLD_H / 2
 
-    latest = {"players": [], "bullets": [], "pickups": [], "orbits": [], "chat_log": []}
+    latest = {"players": [], "bullets": [], "pickups": [], "orbits": [], "chat_log": [], "kill_feed": []}
     state_lock = threading.Lock()
     running = True
 
@@ -82,11 +138,12 @@ def run_game(sock, config):
                     continue
                 if msg.get("type") == "state":
                     with state_lock:
-                        latest["players"]  = msg.get("players", [])
-                        latest["bullets"]  = msg.get("bullets", [])
-                        latest["pickups"]  = msg.get("pickups", [])
-                        latest["orbits"]   = msg.get("orbits", [])
-                        latest["chat_log"] = msg.get("chat_log", [])
+                        latest["players"]   = msg.get("players", [])
+                        latest["bullets"]   = msg.get("bullets", [])
+                        latest["pickups"]   = msg.get("pickups", [])
+                        latest["orbits"]    = msg.get("orbits", [])
+                        latest["chat_log"]  = msg.get("chat_log", [])
+                        latest["kill_feed"] = msg.get("kill_feed", [])
 
     threading.Thread(target=recv_loop, daemon=True).start()
 
@@ -105,12 +162,13 @@ def run_game(sock, config):
             pygame.draw.polygon(surf, col, pts)
             pygame.draw.polygon(surf, (0, 0, 0), pts, 2)
 
-    def draw_hp_bar(surf, sx, sy, hp, size):
+    def draw_hp_bar(surf, sx, sy, hp, size, max_hp):
         w, h = max(40, size * 2 + 8), 5
         x = sx - w // 2
         y = sy - size - 12
         pygame.draw.rect(surf, (60, 0, 0), (x, y, w, h))
-        pygame.draw.rect(surf, (60, 200, 60), (x, y, int(w * hp / MAX_HP), h))
+        ratio = hp / max_hp if max_hp > 0 else 0
+        pygame.draw.rect(surf, (60, 200, 60), (x, y, int(w * ratio), h))
         pygame.draw.rect(surf, (0, 0, 0), (x, y, w, h), 1)
 
     def draw_bubble(surf, sx, sy, text, size):
@@ -159,12 +217,14 @@ def run_game(sock, config):
                 pickups_snap = list(latest["pickups"])
                 orbits_snap  = list(latest["orbits"])
                 chat_log     = list(latest["chat_log"])
+                kill_feed    = list(latest["kill_feed"])
 
             me = find_me(players_snap)
             alive = (me is None) or me.get("alive", True)
             my_buffs = me.get("buffs", {}) if me else {}
             my_size = PLAYER_SIZE + (me.get("size_bonus", 0) if me else 0)
-            speed_now = MOVE_SPEED * (SPEED_BUFF_MULT if my_buffs.get("speed", 0) > 0 else 1.0)
+            has_speed = (my_buffs.get("speed", 0) > 0) or (me and me.get("speed_forever"))
+            speed_now = MOVE_SPEED * (SPEED_BUFF_MULT if has_speed else 1.0)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -198,13 +258,13 @@ def run_game(sock, config):
                 elif event.type == pygame.TEXTINPUT and chat_active:
                     chat_text += event.text
 
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if alive and not chat_active:
-                        mx, my = event.pos
-                        dx = mx - SCREEN_W / 2
-                        dy = my - SCREEN_H / 2
-                        if dx * dx + dy * dy > 4:
-                            send({"type": "shoot", "dx": dx, "dy": dy})
+            # 持續按住左鍵 → 自動連射（實際射速由 server 的冷卻限制）
+            if alive and not chat_active and pygame.mouse.get_pressed()[0]:
+                mx, my = pygame.mouse.get_pos()
+                dx = mx - SCREEN_W / 2
+                dy = my - SCREEN_H / 2
+                if dx * dx + dy * dy > 4:
+                    send({"type": "shoot", "dx": dx, "dy": dy})
 
             # 移動
             if alive and not chat_active:
@@ -253,17 +313,19 @@ def run_game(sock, config):
                     continue
                 if p.get("alive", True):
                     draw_shape(screen, p["shape"], p["color"], sx, sy, psize)
-                    draw_hp_bar(screen, sx, sy, p["hp"], psize)
+                    draw_hp_bar(screen, sx, sy, p["hp"], psize, p.get("max_hp", MAX_HP))
                 else:
                     pygame.draw.circle(screen, (120, 120, 120), (sx, sy), psize, 2)
                     xx = font.render("X_X", True, (120, 120, 120))
                     screen.blit(xx, (sx - xx.get_width() // 2, sy - xx.get_height() // 2))
-                # 名字：金手指開啟時彩虹閃爍 + 前綴
+                # 名字：金手指開啟時彩虹閃爍 + 前綴，並顯示等級
+                lv = p.get("level", 1)
+                base_name = f"Lv{lv} " + p["id"]
                 if p.get("super"):
-                    name_text = SUPER_PREFIX + p["id"]
+                    name_text = SUPER_PREFIX + base_name
                     id_col = rainbow(now, offset=hash(p["id"]) % 100 / 100.0)
                 else:
-                    name_text = p["id"]
+                    name_text = base_name
                     id_col = (0, 0, 0)
                 id_s = font.render(name_text, True, id_col)
                 screen.blit(id_s, (sx - id_s.get_width() // 2, sy + psize + 6))
@@ -281,19 +343,18 @@ def run_game(sock, config):
             # 子彈
             for b in bullets_snap:
                 sx = int(b["x"] - cam_x); sy = int(b["y"] - cam_y)
-                if not (-50 < sx < SCREEN_W + 50 and -50 < sy < SCREEN_H + 50):
+                if not (-60 < sx < SCREEN_W + 60 and -60 < sy < SCREEN_H + 60):
                     continue
                 if b.get("rainbow"):
-                    # 彩虹子彈：外圈彩虹 + 白心
                     r_col = rainbow(now, offset=b["x"] * 0.01 + b["y"] * 0.01)
                     pygame.draw.circle(screen, r_col, (sx, sy), BULLET_RADIUS + 2)
                     pygame.draw.circle(screen, (255, 255, 255), (sx, sy), BULLET_RADIUS - 1)
                 elif b.get("homing"):
-                    pygame.draw.circle(screen, (240, 220, 60), (sx, sy), BULLET_RADIUS + 2)
-                    pygame.draw.circle(screen, (0, 0, 0), (sx, sy), BULLET_RADIUS + 2, 1)
+                    # 追蹤子彈套用等級形狀但外圈加黃色描邊
+                    pygame.draw.circle(screen, (240, 220, 60), (sx, sy), BULLET_TIER_SIZES[b.get("tier", 0)] + 2)
+                    draw_bullet_by_tier(screen, sx, sy, b.get("tier", 0), now)
                 else:
-                    pygame.draw.circle(screen, (255, 80, 20), (sx, sy), BULLET_RADIUS)
-                    pygame.draw.circle(screen, (0, 0, 0), (sx, sy), BULLET_RADIUS, 1)
+                    draw_bullet_by_tier(screen, sx, sy, b.get("tier", 0), now)
 
             # 準心（大十字 + 中央小點）
             if alive:
@@ -328,37 +389,87 @@ def run_game(sock, config):
                 pygame.draw.circle(screen, tuple(p["color"]), (mmx, mmy), 3)
 
             # ====== HUD ======
-            # 血條
+            # 血條 + XP 條 + 等級
             if me:
                 hp = me["hp"]
+                max_hp = me.get("max_hp", MAX_HP) or MAX_HP
+                level = me.get("level", 1)
+                xp = me.get("xp", 0)
+                xp_need = me.get("xp_need", 0)
+                dmg = me.get("damage", 5)
+
+                # HP 條
                 pygame.draw.rect(screen, (60, 0, 0), (10, 10, 320, 26))
-                pygame.draw.rect(screen, (60, 200, 60), (10, 10, int(320 * hp / MAX_HP), 26))
+                pygame.draw.rect(screen, (60, 200, 60),
+                                 (10, 10, int(320 * hp / max_hp), 26))
                 pygame.draw.rect(screen, (255, 255, 255), (10, 10, 320, 26), 2)
-                hp_text = font.render(f"HP {hp} / {MAX_HP}", True, (255, 255, 255))
+                hp_text = font.render(f"HP {int(hp)} / {int(max_hp)}", True, (255, 255, 255))
                 screen.blit(hp_text, (16, 13))
 
-            # 我的 Buff 條列（左上血條下方）
-            if my_buffs:
-                y = 44
-                for name, remaining in my_buffs.items():
-                    if name == "hp" or remaining <= 0:
-                        continue
-                    col = BUFF_COLORS.get(name, (200, 200, 200))
-                    pygame.draw.circle(screen, col, (20, y + 10), 9)
-                    pygame.draw.circle(screen, (0, 0, 0), (20, y + 10), 9, 1)
-                    label_txt = f"{BUFF_ZH.get(name, name)}  {remaining:.1f}s"
-                    t = font.render(label_txt, True, (255, 255, 255))
-                    # 描邊背景
-                    bg = pygame.Rect(32, y + 2, t.get_width() + 8, 20)
-                    s = pygame.Surface((bg.w, bg.h), pygame.SRCALPHA)
-                    s.fill((0, 0, 0, 130))
-                    screen.blit(s, bg.topleft)
-                    screen.blit(t, (36, y + 3))
-                    y += 22
+                # XP 條
+                pygame.draw.rect(screen, (30, 30, 60), (10, 40, 320, 14))
+                if xp_need > 0:
+                    pygame.draw.rect(screen, (80, 180, 255),
+                                     (10, 40, int(320 * xp / xp_need), 14))
+                else:
+                    pygame.draw.rect(screen, (255, 215, 0), (10, 40, 320, 14))
+                pygame.draw.rect(screen, (255, 255, 255), (10, 40, 320, 14), 1)
+                xp_lbl = f"Lv {level} MAX" if xp_need == 0 else f"Lv {level}   XP {xp} / {xp_need}   DMG {dmg}"
+                xp_text = small.render(xp_lbl, True, (255, 255, 255))
+                screen.blit(xp_text, (16, 41))
+
+            # 我的 Buff 條列（左上，XP 條下方）
+            y = 60
+            def draw_buff_row(y, col, text):
+                pygame.draw.circle(screen, col, (20, y + 10), 9)
+                pygame.draw.circle(screen, (0, 0, 0), (20, y + 10), 9, 1)
+                t = font.render(text, True, (255, 255, 255))
+                bg = pygame.Rect(32, y + 2, t.get_width() + 8, 20)
+                s = pygame.Surface((bg.w, bg.h), pygame.SRCALPHA)
+                s.fill((0, 0, 0, 130))
+                screen.blit(s, bg.topleft)
+                screen.blit(t, (36, y + 3))
+                return y + 22
+
+            if me and me.get("rapid_forever"):
+                y = draw_buff_row(y, BUFF_COLORS["rapid"], "快速射擊  ∞")
+            if me and me.get("speed_forever"):
+                y = draw_buff_row(y, BUFF_COLORS["speed"], "加速移動  ∞")
+            for name, remaining in my_buffs.items():
+                if name == "hp" or remaining <= 0:
+                    continue
+                y = draw_buff_row(y, BUFF_COLORS.get(name, (200, 200, 200)),
+                                  f"{BUFF_ZH.get(name, name)}  {remaining:.1f}s")
 
             # 玩家數
             cnt = font.render(f"線上：{len(players_snap)}", True, (0, 0, 0))
             screen.blit(cnt, (SCREEN_W - cnt.get_width() - 10, 10))
+
+            # 擊殺公告（右上，往下堆疊，過期淡出）
+            visible = [k for k in kill_feed[-KILL_FEED_SHOW:] if now - k.get("ts", 0) < KILL_FEED_DURATION]
+            fy = 34
+            for k in reversed(visible):
+                age = now - k.get("ts", 0)
+                alpha = 255 if age < KILL_FEED_DURATION - 1 else max(0, int(255 * (KILL_FEED_DURATION - age)))
+                killer_name = (SUPER_PREFIX if k.get("killer_super") else "") + k.get("killer", "?")
+                victim_name = (SUPER_PREFIX if k.get("victim_super") else "") + k.get("victim", "?")
+                kc = tuple(k.get("killer_color", (220, 60, 60)))
+                vc = tuple(k.get("victim_color", (60, 60, 220)))
+                s_kill = font.render(killer_name, True, kc)
+                s_mid  = font.render(" 擊殺了 ", True, (255, 255, 255))
+                s_vic  = font.render(victim_name, True, vc)
+                total_w = s_kill.get_width() + s_mid.get_width() + s_vic.get_width() + 16
+                panel = pygame.Surface((total_w, 24), pygame.SRCALPHA)
+                panel.fill((0, 0, 0, min(alpha, 170)))
+                for surf in (s_kill, s_mid, s_vic):
+                    surf.set_alpha(alpha)
+                px = SCREEN_W - total_w - 10
+                screen.blit(panel, (px, fy))
+                cx = px + 8
+                screen.blit(s_kill, (cx, fy + 4)); cx += s_kill.get_width()
+                screen.blit(s_mid,  (cx, fy + 4)); cx += s_mid.get_width()
+                screen.blit(s_vic,  (cx, fy + 4))
+                fy += 28
 
             # ====== 右下角半透明聊天視窗 ======
             panel_x = SCREEN_W - CHAT_PANEL_W - 10
