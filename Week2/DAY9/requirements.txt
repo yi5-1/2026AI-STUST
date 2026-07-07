@@ -1,19 +1,40 @@
 # DAY9 環境需求
 #
-# 重要：Teachable Machine 匯出的 .h5 模型只能被 Keras 2 讀
-# Keras 3 (TF 2.16+ 自帶) 會遇到 DepthwiseConv2D 和 Sequential 相容性錯誤
-# → 明確鎖 TF 2.15 + Keras 2.15
+# ========================================
+# 標準安裝
+# ========================================
+# pip install -r requirements.txt
 #
-# 安裝方式（建議在 conda env 內執行）：
-#   pip install -r requirements.txt
+# ========================================
+# 為什麼要用 tf-keras？
+# ========================================
+# Teachable Machine 匯出的 .h5 是舊格式，Keras 3 (TF 2.16+ 自帶) 不接受。
+# tf-keras 是 Keras 2 相容層，搭配環境變數 TF_USE_LEGACY_KERAS=1 就能繼續讀。
+# → 這樣不用死鎖 TF 2.15，Python 3.9 ~ 3.13 都能跑
+# → 03/06 腳本已經在檔案最上面設定好那個環境變數
+#
+# ========================================
+# 常見錯誤處理
+# ========================================
+#
+# [Q1] 「Could not find a version that satisfies tensorflow==2.15.*」
+#      → 你的 Python 太新 (3.12+)，TF 2.15 沒 wheel。這份 requirements 已經不鎖版本，
+#        直接 pip install 就會挑最新的
+#
+# [Q2] 「opencv-contrib-python 5.0.0.93 requires numpy>=2, but you have numpy 1.26.4」
+#      → 舊 numpy 卡住了。跑一次：
+#            pip install --upgrade numpy
+#        或者強制更新整包：
+#            pip install --upgrade -r requirements.txt
+#
+# [Q3] 「DepthwiseConv2D groups」或 Sequential 相關錯誤
+#      → 環境變數沒生效。確認 03/06 腳本裡最上方有
+#            os.environ["TF_USE_LEGACY_KERAS"] = "1"
+#        且它是在 import tensorflow 之前
 
-tensorflow==2.15.*
-keras==2.15.*
-
-# numpy 要 <2，跟 TF 2.15 相容；opencv 5.x 需要 numpy>=2，衝突 → 用 4.x
-numpy<2
-opencv-python<5
-
-# 影像處理 + 學習曲線
+tensorflow
+tf-keras          # Keras 2 相容層，讀 TM 舊 h5 必備
+opencv-python
 pillow
+numpy
 matplotlib
