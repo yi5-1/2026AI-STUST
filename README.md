@@ -1,16 +1,6 @@
 # 2026 AI - STUST 學習筆記
 
-南臺科技大學 (STUST) 2026 AI 課程的個人練習與作業 repo，記錄從 Python 基礎到資料視覺化的學習過程。
-
----
-
-## 環境需求
-
-```bash
-pip install matplotlib pandas openpyxl
-```
-
-中文字型預設使用 `Microsoft JhengHei`（Windows 內建）。
+南臺科技大學 (STUST) 2026 AI 課程的個人練習與作業 repo，記錄從 Python 基礎、GUI、網頁、電腦視覺一路到深度學習 / YOLO 物件偵測 的完整學習過程。
 
 ---
 
@@ -19,96 +9,125 @@ pip install matplotlib pandas openpyxl
 ```
 project/
 ├── hello.md                          # Markdown 練習
-├── Week1/
-│   ├── DAY2/                         # Python 基礎：變數、條件、邏輯、函式
-│   ├── DAY3/                         # 迴圈、列表、檔案 I/O、matplotlib 圖表
-│   └── DAY4/                         # Excel 讀取 + 真實人口資料分析
+├── Week1/                            # 第 1 週：基礎 → 電腦視覺
+│   ├── DAY2/                         # Python 語法基礎
+│   ├── DAY3/                         # 迴圈 + matplotlib
+│   ├── DAY4/                         # pandas + tkinter GUI
+│   ├── DAY5/                         # socket + pygame 多人遊戲
+│   ├── DAY6/                         # aiohttp / Flask + DB + WebSocket
+│   └── DAY7/                         # OpenCV 電腦視覺
+├── Week2/                            # 第 2 週：專題整合 + 深度學習
+│   ├── DAY8/                         # 期中專題整合日 (5 題選 1)
+│   ├── DAY9/                         # CNN + Teachable Machine + MediaPipe
+│   └── DAY10/                        # YOLO11n + Roboflow + Label Studio
 └── README.md
 ```
 
 ---
 
-## Week 1
+## 學習脈絡（一路上升）
+
+```
+DAY2 語法基礎  →  DAY3 迴圈 + 視覺化  →  DAY4 pandas + tkinter GUI  →  DAY5 socket + pygame 多人
+   (變數/條件)        (列表/檔案/plt)         (Excel/作業/GUI)              (TCP/threading/pygame)
+
+→  DAY6 aiohttp + WebSocket + Canvas  →  DAY7 OpenCV 電腦視覺
+   (瀏覽器多人 / DB / 會員系統)          (灰階/Canny/霍夫圓/形狀分類)
+
+→  DAY8 期中專題（選題整合前 6 天）
+
+→  DAY9 CNN + Teachable Machine + MediaPipe OD
+   (預訓練 / 手刻 CNN / 遷移學習)
+
+→  DAY10 YOLO11n 自訓練物件偵測
+   (Roboflow 生態 / Label Studio 標註 / CCTV 車流量)
+```
+
+每個檔名都用中文命名（例如 `def 畢氏定理(a, b)`），方便對照當天課程主題快速回頭翻閱。
+
+---
+
+## Week 1 — 基礎到電腦視覺
 
 ### DAY 2 — Python 基礎語法
+變數、型別、條件、布林邏輯、函式與模組。13 個小檔案，每個聚焦一個概念。
+從 `變數教學.py` 到 `畢氏定理.py` 到 `斜向拋射.py`。
 
-主題：變數、型別、運算子、條件判斷、布林邏輯、函式與模組。
+### DAY 3 — 迴圈、列表、CSV、matplotlib
+`for/while` 迴圈、list、`csv.reader` 讀 CSV、matplotlib 折線 / 直方 / 散點 / 圓餅圖。
+最後做「台南市各區人口比例」圓餅圖。
 
+### DAY 4 — pandas + tkinter GUI
+- `作業-湖西鄉人口圖表統計.py`：pandas 讀 Excel + matplotlib 出生死亡差方圖
+- `GUI/` 子資料夾：11 個 tkinter 教學檔（`01_第一個視窗` → `10_湖西鄉人口GUI`），逐步教到把 matplotlib 嵌進 tkinter Canvas
+
+### DAY 5 — socket + pygame 多人遊戲
+- `Server.py` / `Client.py` / `ChatServer.py` — 最小 TCP echo + 聊天室
+- `pygame_multiplayer/` — 多人 2D 遊戲（WASD 移動、小地圖、聊天泡泡、道具、Buff 系統）
+
+### DAY 6 — Web + 資料庫
+| 子專案 | 教什麼 |
+|---|---|
+| `web_basics/` | aiohttp + SQLite 留言板 — fetch / GET / POST / JSON / SQL 入門 |
+| `web_auth/` | aiohttp + PostgreSQL + `.env` 讀密碼 — 註冊 / 登入兩個 API |
+| `web_shooter/` | pygame 遊戲移植成瀏覽器版 — WebSocket + HTML5 Canvas |
+| `電商平台/` | Flask + PostgreSQL 電商應用（含 spec 文件、admin 面板）|
+
+### DAY 7 — OpenCV 電腦視覺
+- `視覺.py` / `像素展示.py` — 基本操作
+- `霍夫圓檢測.py` / `凸包檢測(幾何形狀分類).py` — 傳統 CV 算法
+- `視角切換與形狀偵測.py` — trackbar 即時調參
+- `tkinter影像處理工具.py` — 整合 tkinter GUI + OpenCV 即時處理
+
+---
+
+## Week 2 — 深度學習與物件偵測
+
+### DAY 8 — 期中專題整合日
+把 DAY2-7 學的技能組合成一個 demo 作品。5 個專題選 1：
+
+| 專題 | 一句話 | 整合 |
+|---|---|---|
+| A_智慧視覺打卡系統 | 用鏡頭辨識 + 資料庫記錄出勤 | DAY7 + DAY4/6 + DAY3 |
+| B_多人網頁遊戲排行榜 | web_shooter 加帳號、存分、排行榜 | DAY6 + DAY5 + DAY2 |
+| C_開放資料分析儀表板 | 讀公開資料，互動式切換圖表 | DAY4 + DAY3 + DAY6 |
+| D_體感操控小遊戲 | 用鏡頭偵測手勢控制 pygame | DAY7 + DAY5 + DAY2 |
+| E_即時視覺監控站 | 一台擷取 + 多台瀏覽器同步觀看 | DAY7 + DAY6 + DAY5 |
+
+每個資料夾裡有自己的 README + 起手式骨架。
+
+### DAY 9 — CNN + Teachable Machine + MediaPipe
 | 檔案 | 內容 |
 |---|---|
-| `變數教學.py` | 變數宣告、運算子、`type()` 查看型別 |
-| `變數類型.py` | 同一變數放入 `int` / `float` / `str` 時的型別變化 |
-| `四則運算.py` | 字串相加 (`+`) 的範例 |
-| `輸入.py` | `input()` 取得使用者輸入，搭配 `float()` 做加法 |
-| `布林比較.py` | `>`、`<`、`>=`、`<=`、`==` 比較運算子 |
-| `邏輯.py` | `and`、`or` 布林邏輯運算 |
-| `邏輯題目and.py` | 情境題：超商買珍奶（年齡 ∧ 金錢） |
-| `邏輯題目or.py` | 情境題：出門帶傘（下雨 ∨ 大太陽） |
-| `如果條件.py` | `if / elif / else` 三向分支 |
-| `文字遊戲(手搓版).py` | 用 `input` + `if` 做簡單心情回應遊戲 |
-| `畢氏定理.py` | 自訂函式 `畢氏定理(a, b)` 計算斜邊；展示 `import math as 數學` |
-| `斜向拋射.py` | 計算飛行時間 / 最大高度 / 水平射程，使用 `math.radians`、`math.sin` |
-| `main.py` | 跨檔 `import 畢氏定理` 模組呼叫範例 |
+| `01_什麼是CNN.md` | 白話介紹卷積 / 池化 / 全連接 |
+| `02_Teachable_Machine_教學.md` | Google 網頁 GUI 訓練分類器（不寫程式） |
+| `03_載入TM模型_鏡頭辨識.py` | 把 TM 匯出的 `.h5` 接上 webcam 即時分類 |
+| `04_從零寫一個CNN_MNIST.py` | 手刻最小 CNN 訓練 MNIST |
+| `05_遷移學習_MobileNet.py` | ImageNet 預訓練 MobileNetV2 分類鏡頭 |
+| `06_作業_辨識自己的物體.py` | 空殼作業：接自己 TM 模型做應用 |
+| `07_手寫辨識_tkinter.py` | tkinter 畫布用滑鼠寫數字 + CNN 預測 |
+| `08_物件偵測_mediapipe.py` | MediaPipe EfficientDet-Lite0 webcam OD（COCO 80 類 + 中文標籤） |
+| M1–M4 pptx | 機器學習導論 / 深度學習入門 / 工作流 / 模型部署 |
 
-### DAY 3 — 迴圈、列表、檔案 I/O、matplotlib
+### DAY 10 — YOLO11n 自訓練 + Label Studio + CCTV
+從**預訓練玩票 → 自訓練工業級 → 部署到即時串流**的完整流程。
 
-主題：流程控制、容器型別、CSV 處理、基礎資料視覺化。
+**教學主線**（01-09 依序）：01_YOLO 觀念 → 02_預訓練玩 → 03_Roboflow 教學 → 04_下 dataset → 05_訓練 → 06_評估 → 07_推論 → 08_串流版 → 09_CCTV 車流量檢測（ByteTrack + 過線計數）
 
-| 檔案 | 內容 |
-|---|---|
-| `for迴圈.py` | `range()` 與 list 迭代寫法 |
-| `while迴圈.py` | `while` 配合 `time.sleep` 做倒數 |
-| `列表.py` | List 宣告、索引取值、`len()`、`type()` |
-| `列表的append.py` | `append` 收集資料再繪製二次函式折線圖 |
-| `開啟檔案.py` | 原始 `open()` + `split()` 拆 CSV，理解編碼與分隔 |
-| `台南人口統計.py` | 用 `csv.reader` + `dict(zip(header, row))` 讀取台南人口資料，畫出各區人口佔比圓餅圖 |
-| `matplotlib 折線圖教學.py` | matplotlib `plt.plot` 入門 |
-| `matplotlib改圖.py` | 加上中文字型、`xlim` / `ylim` / 標題 / 軸標籤 |
-| `直方圖.py` | `plt.hist` 繪製成績分布 |
-| `散步圖.py` | `plt.scatter` 散點圖 |
-| `985ed9fd-…csv` | 台南市各區人口統計資料來源檔 |
+**工具**（不編號）：
+- `convert_ls_json_to_yolo.py` — Label Studio 匯出的 JSON 轉 YOLO 訓練格式
+- `ls_export_wrapper.py` — 學員區網一鍵下載完整 YOLO zip 的 server
+- `get_cctv_url.py` — 自動抓 台中 CCTV 的 MJPEG 串流 URL
+- `stream_test.py` — 純測 CCTV 連線
+- `ls_gemma_backend.py` — Gemma 輔助標註 (experimental)
 
-### DAY 4 — Excel 讀取與人口分析作業
+**文件**：
+- `TRAINING_GUIDE.md` — CPU / GPU / Colab 各種硬體情境的參數建議、常見錯誤對照
+- `HOMEWORK.md` — 期末作業指引
 
-| 檔案 | 內容 |
-|---|---|
-| `data.xlsx` / `data.csv` | 湖西鄉（澎湖）逐月人口統計資料。註：兩個檔案內容相同，皆為 xlsx 二進位格式 |
-| `作業-湖西鄉人口圖表統計.py` | **作業**：用 `pandas.read_excel` 讀入 65 個月的資料，計算「出生 − 死亡」的自然增加數，繪製單條長條圖：正成長朝上 (藍)，負成長朝下 (紅)，並以 `axhline(0)` 標出 0 軸 |
+**範例資料集**：`datasets/fe/` 已 push 140 張標好的 Fe 樣本，`git clone` 就能訓練
 
-執行結果：65 個月中 19 個月正成長、39 個月負成長、7 個月持平。湖西鄉人口呈現自然減少趨勢。
-
-#### GUI 子資料夾 — tkinter 教學
-
-每個檔案聚焦一個概念，循序漸進。tkinter 是 Python 內建模組，**不用額外安裝**。
-
-| 檔案 | 主題 |
-|---|---|
-| `01_第一個視窗.py` | `Tk()` 建立視窗、`title`、`geometry`、`mainloop` |
-| `02_Label文字標籤.py` | `Label` 顯示文字，字型 / 顏色 / 背景色設定 |
-| `03_Button按鈕.py` | `Button` 搭配 `command=函式名` 觸發動作 |
-| `04_Entry輸入框.py` | `Entry` 取得使用者輸入，用 `.get()` 拿值 |
-| `05_pack排版.py` | `pack()` 的 `side` 方向參數（top/bottom/left/right）|
-| `06_grid格狀排版.py` | `grid(row, column)` 表格式排版，`columnspan` 跨欄 |
-| `07_messagebox彈出視窗.py` | 提示 / 警告 / 錯誤 / 是非詢問四種彈窗 |
-| `08_小作品_BMI計算機.py` | 綜合練習：把上面所有元件組成 BMI 小工具 |
-| `09_小作品_斜向拋射.py` | 把 DAY2 的斜向拋射函式套上 GUI，輸入 v0、角度即可算出 T / H / R |
-| `10_小作品_湖西鄉人口GUI.py` | 整合 `filedialog` 檔案選擇器 + `FigureCanvasTkAgg` 嵌入 matplotlib + `ttk.Combobox` 下拉選單切換 6 種圖（差方圖 / 總人口 / 出生 / 死亡 / 遷入遷出 / 男女）|
-
-### DAY 5 — Socket 網路程式
-
-| 檔案 / 資料夾 | 內容 |
-|---|---|
-| `Server.py` / `Client.py` | 最小 TCP echo server / client |
-| `ChatServer.py` / `ChatClient.py` | 多人聊天室（threading + broadcast）|
-| `pygame_multiplayer/` | pygame 多人 2D 遊戲：Server + Client，WASD 移動、小地圖、聊天泡泡。詳見資料夾內 `README.md` |
-
-### DAY 6 — Web 基礎 + Web 版多人遊戲
-
-| 檔案 / 資料夾 | 內容 |
-|---|---|
-| `web_basics/` | **Web 入門**：三層架構 demo 留言板 — HTML/JS 前端 + aiohttp 後端 + SQLite。教 fetch、GET/POST、JSON、SQL 基本語法 |
-| `web_auth/` | **PostgreSQL + 環境變數**：最小會員系統，只有註冊 + 登入兩個 API，`asyncpg` 連線池 + `.env` 讀密碼 |
-| `web_shooter/` | **進階**：把 DAY5 的 pygame 遊戲移植到瀏覽器：`aiohttp` + WebSocket + HTML5 Canvas。所有人只要瀏覽器打開 `http://<host>:8765/` 就能玩，不用裝 pygame |
+詳見 [Week2/DAY10/README.md](Week2/DAY10/README.md)
 
 ---
 
@@ -118,11 +137,28 @@ Markdown 語法初體驗，練習標題與項目符號。
 
 ---
 
-## 學習脈絡
+## 環境需求（依 DAY 分）
 
-```
-DAY2 語法基礎  →  DAY3 迴圈 + 視覺化  →  DAY4 pandas + tkinter GUI  →  DAY5 socket + pygame 多人  →  DAY6 aiohttp + WebSocket + Canvas
-   (變數/條件)        (列表/檔案/plt)         (Excel/作業/GUI)              (TCP/threading/pygame)         (瀏覽器多人遊戲)
-```
+| DAY | 主要套件 |
+|---|---|
+| 2 / 3 | 內建 |
+| 3 / 4 | matplotlib、pandas、openpyxl |
+| 4 (GUI) | 內建（tkinter）|
+| 5 | pygame |
+| 6 | aiohttp、Flask、SQLAlchemy、psycopg2、python-dotenv |
+| 7 | opencv-python、pillow、numpy |
+| 8 | 依專題而定 |
+| 9 | tensorflow、tf-keras、mediapipe、pillow、matplotlib（見 DAY9/requirements.txt）|
+| 10 | ultralytics、roboflow、torch、pandas、opencv-python、flask（見 DAY10/requirements.txt）|
 
-每個檔名都用中文命名，方便對照當天課程主題快速回頭翻閱。
+**中文字型**：matplotlib 與 GUI 統一用 `Microsoft JhengHei`（Windows 內建）。
+
+---
+
+## 給 clone 這個 repo 的學員的話
+
+**依 DAY 順序看**，不要跳，每個 DAY 的作品是下一 DAY 的基礎。真的手癢想跳的話，最少也要先跑 DAY7 才進 DAY9 / DAY10（電腦視覺基礎沒有的話，YOLO 前的推理管線會看不懂）。
+
+不同 DAY 的環境套件**盡量分開 conda env**（尤其 DAY9 的 TensorFlow 跟 DAY10 的 PyTorch）。或用一個大 env 但版本要照 DAY 的 requirements 鎖。
+
+有問題看每個 DAY 的 README 或 TRAINING_GUIDE.md。
