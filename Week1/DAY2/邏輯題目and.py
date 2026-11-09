@@ -5,9 +5,9 @@
 """
 age = 20
 has_money = True
-is_boys = True
+男的 = True
 # 兩個條件都必須是 True
-if (age >= 18 or has_money == True and is_boys==True) :
+if (age >= 18 and has_money == True and 男的==True) :
     print("恭喜！成功買到珍奶 🧋")
 else:
     print("條件不符，不能買喔！")

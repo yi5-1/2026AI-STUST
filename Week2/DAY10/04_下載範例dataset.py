@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 
 # ====== 你要改的地方 ======
-API_KEY = os.getenv("ROBOFLOW_API_KEY", "YOUR_API_KEY_HERE")
+API_KEY = os.getenv("ROBOFLOW_API_KEY", "dD4Wqxy1TdcZjhHdZW5r")
 
 # 幾個經典 dataset，選一個把 `use_this` 對到那個 key
 DATASETS = {

@@ -190,7 +190,7 @@ def main():
     yaml_content = (
         f"# 由 Label Studio JSON 匯入自動產生\n"
         f"# 產生時間：{__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-        f"path: {OUTPUT_DIR.resolve().as_posix()}\n"
+        f"path: .\n"
         f"train: train/images\n"
         f"val: valid/images\n"
         f"test: test/images\n\n"
